@@ -85,6 +85,8 @@
 		1342B4B82A5739140078D158 = {
 			isa = PBXGroup;
 			children = (
+				1342B4F22A573AF50078D158 /* README.md */,
+				1342B4F12A573AF50078D158 /* LICENSE.txt */,
 				1342B4C32A5739140078D158 /* SampleSectionedQuery */,
 				1342B4D72A5739170078D158 /* SampleSectionedQueryTests */,
 				1342B4E12A5739170078D158 /* SampleSectionedQueryUITests */,
@@ -105,14 +107,12 @@
 		1342B4C32A5739140078D158 /* SampleSectionedQuery */ = {
 			isa = PBXGroup;
 			children = (
-				1342B4F22A573AF50078D158 /* README.md */,
 				1342B4C42A5739140078D158 /* SampleSectionedQueryApp.swift */,
 				1342B4C82A5739140078D158 /* ContentView.swift */,
 				1342B4C62A5739140078D158 /* Item.swift */,
 				1342B4F32A573AF50078D158 /* Attribute.swift */,
 				1342B4CA2A5739170078D158 /* Assets.xcassets */,
 				1342B4CC2A5739170078D158 /* SampleSectionedQuery.entitlements */,
-				1342B4F12A573AF50078D158 /* LICENSE.txt */,
 				1342B4CD2A5739170078D158 /* Preview Content */,
 			);
 			path = SampleSectionedQuery;
