@@ -13,10 +13,13 @@ final class Item {
     
     var name: String
     var order: Int
-    @Relationship(.cascade) var attributes: [Attribute] = []
+    
+    var attributes: [Attribute]
     
     init(name: String, order: Int) {
         self.name = name
         self.order = order
+        
+        self.attributes = [Attribute]()
     }
 }

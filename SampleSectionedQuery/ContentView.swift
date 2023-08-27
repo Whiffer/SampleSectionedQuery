@@ -17,8 +17,8 @@ struct ContentView: View {
     // each "section" corresponds to an Item object and are all sorted by the Item's "order" property.
     // Then within each section, the Item's Attributes are shown in order by the Attribute's "order" property.
     
-    @SectionedQuery(sectionIdentifier: \Attribute.item.name,
-                    sortDescriptors: [SortDescriptor(\Attribute.item.order, order: .forward),
+    @SectionedQuery(sectionIdentifier: \Attribute.item!.name,
+                    sortDescriptors: [SortDescriptor(\Attribute.item!.order, order: .forward),
                                       SortDescriptor(\Attribute.order, order: .forward)],
                     predicate: nil,
                     animation: .default)
@@ -32,7 +32,7 @@ struct ContentView: View {
             ForEach(self.sections) { section in
                 Section(header: Text("Section for Item '\(section.id)'")) {
                     ForEach(section, id: \.self) { attribute in
-                        Text("Item[\(attribute.item.order)] '\(attribute.item.name)' Attribute[\(attribute.order)]")
+                        Text("Item[\(attribute.item!.order)] '\(attribute.item!.name)' Attribute[\(attribute.order)]")
                             .monospaced()
                     }
                 }
@@ -52,38 +52,35 @@ struct ContentView: View {
     
     @MainActor private func load() {
         do {
+            let fetchDescriptor = FetchDescriptor<Attribute>()
+            let attributes = try self.modelContext.fetch(fetchDescriptor)
+            for attribute in attributes {
+                self.modelContext.delete(attribute)
+            }
             let itemDescriptor = FetchDescriptor<Item>()
             let items = try self.modelContext.fetch(itemDescriptor)
             for item in items {
                 self.modelContext.delete(item)
             }
-            try self.modelContext.save()
-            
-            let fetchDescriptor = FetchDescriptor<Attribute>()
-            let attributes = try self.modelContext.fetch(fetchDescriptor)
-            for item in attributes {
-                self.modelContext.delete(item)
-            }
-            try self.modelContext.save()
             
             let item1 = Item(name: "Z", order: 0)
+            self.modelContext.insert(item1)
             self.modelContext.insert(Attribute(item: item1, name: "\(item1.name).0", order: 0))
             self.modelContext.insert(Attribute(item: item1, name: "\(item1.name).1", order: 1))
             self.modelContext.insert(Attribute(item: item1, name: "\(item1.name).2", order: 2))
-            self.modelContext.insert(item1)
-            
+
             let item2 = Item(name: "Y", order: 1)
+            self.modelContext.insert(item2)
             self.modelContext.insert(Attribute(item: item2, name: "\(item2.name).0", order: 0))
             self.modelContext.insert(Attribute(item: item2, name: "\(item2.name).1", order: 1))
             self.modelContext.insert(Attribute(item: item2, name: "\(item2.name).2", order: 2))
-            self.modelContext.insert(item2)
-            
+
             let item3 = Item(name: "X", order: 2)
+            self.modelContext.insert(item3)
             self.modelContext.insert(Attribute(item: item3, name: "\(item3.name).0", order: 0))
             self.modelContext.insert(Attribute(item: item3, name: "\(item3.name).1", order: 1))
             self.modelContext.insert(Attribute(item: item3, name: "\(item3.name).2", order: 2))
-            self.modelContext.insert(item2)
-            
+
             try self.modelContext.save()
         } catch {
             fatalError("Unresolved error \(error), \(error.localizedDescription)")
@@ -112,7 +109,7 @@ struct ContentView: View {
         let oldItemOrder = self.sections.sortDescriptors[0].order
         let newItemOrder = oldItemOrder == SortOrder.forward ? SortOrder.reverse : SortOrder.forward
         
-        self.sections.sortDescriptors = [SortDescriptor(\Attribute.item.order, order: newItemOrder),
+        self.sections.sortDescriptors = [SortDescriptor(\Attribute.item!.order, order: newItemOrder),
                                          SortDescriptor(\Attribute.order, order: .forward)]
     }
     

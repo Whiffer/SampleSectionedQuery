@@ -2,6 +2,10 @@
 
 This project is a sample App for the swiftdata-sectionedquery package found at: https://github.com/Whiffer/swiftdata-sectionedquery
 
+## Verion History
+
+2023-08-26 Changes required to compile and run with Xcode Beta 7.
+
 ## Usage Notes
 
 1. Build and run this project for either macOS 14 or iOS 17 Beta 2 or later.

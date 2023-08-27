@@ -11,13 +11,15 @@ import SwiftData
 @Model
 final class Attribute {
     
-    @Relationship var item: Item
+    var item: Item?
+    
     var name: String
     var order: Int
 
     init(item: Item, name: String, order: Int) {
-        self.item = item
         self.name = name
         self.order = order
+        
+        self.item = item    // With Xcode Beta 7, this will crash if set before name and/or order.
     }
 }
