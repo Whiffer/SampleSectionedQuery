@@ -13,6 +13,8 @@ struct ContentView: View {
     
     @Environment(\.modelContext) private var modelContext
     
+    @State private var searchTerm = ""
+    
     // This @SectionedQuery's sectionIdentifier and sortDescriptors are coordinated so that
     // each "section" corresponds to an Item object and are all sorted by the Item's "order" property.
     // Then within each section, the Item's Attributes are shown in order by the Attribute's "order" property.
@@ -38,6 +40,9 @@ struct ContentView: View {
                 }
             }
         }
+        .searchable(text: self.$searchTerm)
+        .onChange(of: self.searchTerm) { self.toggleSearchTermFilter() }
+        
         // This is here to try to see when real ModelContext.didSave notifications start occuring
         .onReceive(self.didSave, perform: { notification in print("**** onReceive \(notification.name.rawValue)") } )
         Spacer()
@@ -120,6 +125,16 @@ struct ContentView: View {
         } else {
             self.sections.predicate = nil
         }
+    }
+    
+    @MainActor private func toggleSearchTermFilter() {
+        guard !self.searchTerm.isEmpty else {
+            self.sections.predicate = nil
+            return
+        }
+        
+        // This will search for Attribute name's that contain the searchTerm as a substring
+        self.sections.predicate = #Predicate<Attribute> { $0.name.localizedStandardContains(searchTerm) }
     }
     
 }
