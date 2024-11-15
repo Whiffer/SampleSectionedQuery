@@ -26,8 +26,6 @@ struct ContentView: View {
                     animation: .default)
     private var sections
     
-    private var didSave =  NotificationCenter.default.publisher(for: ModelContext.didSave)
-    
     var body: some View {
         
         List {
@@ -43,8 +41,6 @@ struct ContentView: View {
         .searchable(text: self.$searchTerm)
         .onChange(of: self.searchTerm) { self.toggleSearchTermFilter() }
         
-        // This is here to try to see when real ModelContext.didSave notifications start occuring
-        .onReceive(self.didSave, perform: { notification in print("**** onReceive \(notification.name.rawValue)") } )
         Spacer()
         HStack {
             Button("Load", action: { self.load() } )
