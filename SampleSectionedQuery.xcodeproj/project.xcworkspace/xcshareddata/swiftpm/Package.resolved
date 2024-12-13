@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Whiffer/swiftdata-sectionedquery",
       "state" : {
-        "revision" : "5435d9a061067460b0857e3f44d25fc0872146ea",
-        "version" : "1.0.2"
+        "revision" : "958835024bffa9ee8a995b34ba1821e6358c041f",
+        "version" : "1.0.3"
       }
     }
   ],
