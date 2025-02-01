@@ -14,6 +14,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     
     @State private var searchTerm = ""
+    @State private var sectionByItem = true
     
     // This @SectionedQuery's sectionIdentifier and sortDescriptors are coordinated so that
     // each "section" corresponds to an Item object and are all sorted by the Item's "order" property.
@@ -30,7 +31,7 @@ struct ContentView: View {
         
         List {
             ForEach(self.sections) { section in
-                Section(header: Text("Section for Item '\(section.id)'")) {
+                Section(header: Text("Section for \(self.sectionByItem ? "Item" : "Attribute") '\(section.id)'")) {
                     ForEach(section, id: \.self) { attribute in
                         Text("Item[\(attribute.item!.order)] '\(attribute.item!.name)' Attribute[\(attribute.order)]")
                             .monospaced()
@@ -47,6 +48,7 @@ struct ContentView: View {
             Button("Swap", action: { self.swap() } )
             Button("Item Sort", action: { self.toggleItemSort() } )
             Button("Filter Attributes", action: { self.toggleAttributeFilter() } )
+            Button("Toggle Section Grouping", action: { self.toggleSectionGrouping() } )
         }
         .buttonStyle(.bordered)
     }
@@ -131,6 +133,22 @@ struct ContentView: View {
         
         // This will search for Attribute name's that contain the searchTerm as a substring
         self.sections.predicate = #Predicate<Attribute> { $0.name.localizedStandardContains(searchTerm) }
+    }
+    
+    @MainActor private func toggleSectionGrouping() {
+        // This will alternate between grouping Attributes by their related Item and by their own order property.
+        // Important Note: In each case, the sectionIdentifier is coordinated with the first SortDescriptor
+        if self.sectionByItem {
+            self.sections.sectionIdentifier = \Attribute.order.description  // Note: sectionIdentifier must be a Sring
+            self.sections.sortDescriptors = [SortDescriptor(\Attribute.order, order: .forward),
+                                             SortDescriptor(\Attribute.item!.order, order: .forward)]
+        } else {
+            self.sections.sectionIdentifier = \Attribute.item!.name
+            self.sections.sortDescriptors = [SortDescriptor(\Attribute.item!.order, order: .forward),
+                                             SortDescriptor(\Attribute.order, order: .forward)]
+        }
+        
+        self.sectionByItem.toggle()
     }
     
 }

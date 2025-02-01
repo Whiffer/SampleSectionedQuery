@@ -5,6 +5,7 @@ This project is a sample App for the swiftdata-sectionedquery package found at: 
 ## Verion History
 
 2023-08-26 Changes required to compile and run with Xcode Beta 7.
+2025-02-01 Added demo for making changes to the sectionIdentifier
 
 ## Usage Notes
 
@@ -18,3 +19,4 @@ This project is a sample App for the swiftdata-sectionedquery package found at: 
 
 5. Tapping the 'Attribute Filter' button will alternate between showing all Attributes and only the first Attribute of each Item (i.e. Section).
 
+6. Tapping the 'Toggle Section Grouping' button will alternate between grouping Attributes by their related Item and by their own order property.
