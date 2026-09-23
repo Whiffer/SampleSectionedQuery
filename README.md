@@ -4,11 +4,14 @@ This project is a sample App for the swiftdata-sectionedquery package found at: 
 
 \*\* NOTE for macOS 27.0 and iOS 27.0:
 Even though Apple has added a native @Query(sectionBy:) property wrapper to SwiftData in the 27.0 versions of iOS and macOS, in order to use it seamlessly, you must duplicate the property you want to group by on the child model, and therefore denormalize your database.  This is because you cannot group the sectioned query directly by a relationship property (e.g., sectionBy: \.category.name). The underlying database engine requires the sectionBy keypath to target a persisted, primitive string/value property belonging directly to the root model.
+
 Until Apple removes this restriction, the swiftdata-sectionedquery package remains a viable alternative to solve this issue.
 
 ## Verion History
 2026-09-22 Reorganized the Test Data and Toolbar Buttons to give a clearer picture of how to setup the @SectionedQuery property wrapper and how to make dynamic changes to it
+
 2025-02-01 Added demo for making changes to the sectionIdentifier
+
 2023-08-26 Changes required to compile and run with Xcode Beta 7.
 
 ## Usage Notes
