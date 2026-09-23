@@ -20,6 +20,6 @@ final class Attribute {
         self.name = name
         self.order = order
         
-        self.item = item    // With Xcode Beta 7, this will crash if set before name and/or order.
+        self.item = item    // This may crash if set before name and/or order.
     }
 }

@@ -13,9 +13,11 @@ struct ContentView: View {
     
     @Environment(\.modelContext) private var modelContext
     
-    @State private var searchTerm = ""
     @State private var sectionByItem = true
-    
+    @State private var sortItemOrder = SortOrder.forward
+    @State private var sortAttributeOrder = SortOrder.forward
+    @State private var searchTerm = ""
+
     // This @SectionedQuery's sectionIdentifier and sortDescriptors are coordinated so that
     // each "section" corresponds to an Item object and are all sorted by the Item's "order" property.
     // Then within each section, the Item's Attributes are shown in order by the Attribute's "order" property.
@@ -29,11 +31,16 @@ struct ContentView: View {
     
     var body: some View {
         
+        Text("Section by: \(self.sectionByItem ? "'Item.name'" : "'Attribute.name'")")
+        Text("Item.order sort: \(self.sortItemOrder == .forward ? ".forward" : ".reverse")")
+        Text("Attribute.order sort: \(self.sortAttributeOrder == .forward ? ".forward" : "reverse")")
+        Text("Filter by Attribute.name's that contains: \(self.sections.predicate == nil ? "''" : "'\(self.searchTerm)'")")
+        
         List {
             ForEach(self.sections) { section in
                 Section(header: Text("Section for \(self.sectionByItem ? "Item" : "Attribute") '\(section.id)'")) {
                     ForEach(section, id: \.self) { attribute in
-                        Text("Item[\(attribute.item!.order)] '\(attribute.item!.name)' Attribute[\(attribute.order)]")
+                        Text("Item[\(attribute.item!.order)] '\(attribute.item!.name)' Attribute[\(attribute.order)] '\(attribute.name)'")
                             .monospaced()
                     }
                 }
@@ -44,11 +51,11 @@ struct ContentView: View {
         
         Spacer()
         HStack {
-            Button("Load", action: { self.load() } )
-            Button("Swap", action: { self.swap() } )
-            Button("Item Sort", action: { self.toggleItemSort() } )
-            Button("Filter Attributes", action: { self.toggleAttributeFilter() } )
-            Button("Toggle Section Grouping", action: { self.toggleSectionGrouping() } )
+            Button("(Re)load", action: { self.load() } )
+            Button("Toggle Section by", action: { self.toggleSectionGrouping() } )
+            Button("Toggle Item Sort", action: { self.toggleItemSort() } )
+            Button("Toggle Attribute Sort", action: { self.toggleAttributeSort() } )
+            Button("Swap first two Item names", action: { self.swap() } )
         }
         .buttonStyle(.bordered)
     }
@@ -60,29 +67,32 @@ struct ContentView: View {
             for attribute in attributes {
                 self.modelContext.delete(attribute)
             }
+            try self.modelContext.save()
+
             let itemDescriptor = FetchDescriptor<Item>()
             let items = try self.modelContext.fetch(itemDescriptor)
             for item in items {
                 self.modelContext.delete(item)
             }
-            
-            let item1 = Item(name: "Z", order: 0)
+            try self.modelContext.save()
+
+            let item1 = Item(name: "Basketball", order: 0)
             self.modelContext.insert(item1)
-            self.modelContext.insert(Attribute(item: item1, name: "\(item1.name).0", order: 0))
-            self.modelContext.insert(Attribute(item: item1, name: "\(item1.name).1", order: 1))
-            self.modelContext.insert(Attribute(item: item1, name: "\(item1.name).2", order: 2))
+            self.modelContext.insert(Attribute(item: item1, name: "Spherical", order: 0))
+            self.modelContext.insert(Attribute(item: item1, name: "Hollow", order: 1))
+            self.modelContext.insert(Attribute(item: item1, name: "Large", order: 2))
 
-            let item2 = Item(name: "Y", order: 1)
+            let item2 = Item(name: "Football", order: 1)
             self.modelContext.insert(item2)
-            self.modelContext.insert(Attribute(item: item2, name: "\(item2.name).0", order: 0))
-            self.modelContext.insert(Attribute(item: item2, name: "\(item2.name).1", order: 1))
-            self.modelContext.insert(Attribute(item: item2, name: "\(item2.name).2", order: 2))
+            self.modelContext.insert(Attribute(item: item2, name: "Oval", order: 0))
+            self.modelContext.insert(Attribute(item: item2, name: "Hollow", order: 1))
+            self.modelContext.insert(Attribute(item: item2, name: "Large", order: 2))
 
-            let item3 = Item(name: "X", order: 2)
+            let item3 = Item(name: "Baseball", order: 2)
             self.modelContext.insert(item3)
-            self.modelContext.insert(Attribute(item: item3, name: "\(item3.name).0", order: 0))
-            self.modelContext.insert(Attribute(item: item3, name: "\(item3.name).1", order: 1))
-            self.modelContext.insert(Attribute(item: item3, name: "\(item3.name).2", order: 2))
+            self.modelContext.insert(Attribute(item: item3, name: "Spherical", order: 0))
+            self.modelContext.insert(Attribute(item: item3, name: "Solid", order: 1))
+            self.modelContext.insert(Attribute(item: item3, name: "Small", order: 2))
 
             try self.modelContext.save()
         } catch {
@@ -91,15 +101,15 @@ struct ContentView: View {
     }
     
     @MainActor private func swap() {
-        // This will swap the order properties of the first two Items.
+        // This will swap the name properties of the first two ordered Items.
         do {
             let fetchDescriptor = FetchDescriptor<Item>(sortBy: [SortDescriptor(\Item.order)])
             let items = try self.modelContext.fetch(fetchDescriptor)
             
-            let firstItemOrder = items[0].order
-            let secondItemOrder = items[1].order
-            items[0].order = secondItemOrder
-            items[1].order = firstItemOrder
+            let firstItemName = items[0].name
+            let secondItemName = items[1].name
+            items[0].name = secondItemName
+            items[1].name = firstItemName
             
             try self.modelContext.save()
         } catch {
@@ -109,20 +119,14 @@ struct ContentView: View {
     
     @MainActor private func toggleItemSort() {
         // This will toggle the Item's SortDescriptor between .forward and .reverse
-        let oldItemOrder = self.sections.sortDescriptors[0].order
-        let newItemOrder = oldItemOrder == SortOrder.forward ? SortOrder.reverse : SortOrder.forward
-        
-        self.sections.sortDescriptors = [SortDescriptor(\Attribute.item!.order, order: newItemOrder),
-                                         SortDescriptor(\Attribute.order, order: .forward)]
+        self.sortItemOrder = (self.sortItemOrder == .forward) ? .reverse : .forward
+        self.setupSortingAndGrouping()
     }
     
-    @MainActor private func toggleAttributeFilter() {
-        // This will alternate between showing all Attributes and only the first Attribute of each Item
-        if self.sections.predicate == nil {
-            self.sections.predicate = #Predicate<Attribute> { attribute in attribute.order == 0 }
-        } else {
-            self.sections.predicate = nil
-        }
+    @MainActor private func toggleAttributeSort() {
+        // This will toggle the Attribute's SortDescriptor between .forward and .reverse
+        self.sortAttributeOrder = (self.sortAttributeOrder == .forward) ? .reverse : .forward
+        self.setupSortingAndGrouping()
     }
     
     @MainActor private func toggleSearchTermFilter() {
@@ -131,24 +135,28 @@ struct ContentView: View {
             return
         }
         
-        // This will search for Attribute name's that contain the searchTerm as a substring
+        // This will search for only those Attribute's with name's that contain the searchTerm as a substring
         self.sections.predicate = #Predicate<Attribute> { $0.name.localizedStandardContains(searchTerm) }
     }
     
     @MainActor private func toggleSectionGrouping() {
-        // This will alternate between grouping Attributes by their related Item and by their own order property.
+        // This will toggle between sectioning Attributes by their related Item and their own name property.
+        self.sectionByItem.toggle()
+        self.setupSortingAndGrouping()
+    }
+    
+    private func setupSortingAndGrouping() {
         // Important Note: In each case, the sectionIdentifier is coordinated with the first SortDescriptor
         if self.sectionByItem {
-            self.sections.sectionIdentifier = \Attribute.order.description  // Note: sectionIdentifier must be a Sring
-            self.sections.sortDescriptors = [SortDescriptor(\Attribute.order, order: .forward),
-                                             SortDescriptor(\Attribute.item!.order, order: .forward)]
-        } else {
             self.sections.sectionIdentifier = \Attribute.item!.name
-            self.sections.sortDescriptors = [SortDescriptor(\Attribute.item!.order, order: .forward),
-                                             SortDescriptor(\Attribute.order, order: .forward)]
+            // Note: Items are sorted by their order property and not by their name property
+            self.sections.sortDescriptors = [SortDescriptor(\Attribute.item!.order, order: sortItemOrder),
+                                             SortDescriptor(\Attribute.order, order: sortAttributeOrder)]
+        } else {
+            self.sections.sectionIdentifier = \Attribute.name  // Note: sectionIdentifier must be a Sring
+            self.sections.sortDescriptors = [SortDescriptor(\Attribute.name, order: sortAttributeOrder),
+                                             SortDescriptor(\Attribute.item!.order, order: sortItemOrder)]
         }
-        
-        self.sectionByItem.toggle()
     }
     
 }
